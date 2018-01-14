@@ -1,0 +1,11 @@
+
+.DS_Store
+.vs_code/
+
+*.py[cod]
+*/__pycache__/
+*.ipynb_checkpoints/
+
+*test*
+
+
