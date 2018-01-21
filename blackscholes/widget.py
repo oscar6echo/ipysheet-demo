@@ -7,7 +7,10 @@ import itertools as it
 import ipywidgets as widgets
 import ipysheet
 
+from IPython.display import display, HTML, clear_output
+
 from .pricer import Price_Call, Price_Put
+from .plot import get_html_plot_2d, get_html_plot_3d
 
 
 li_input_data = [
@@ -63,24 +66,17 @@ class BlackScholesCalculator:
         self.build_sheet_out()
         self.build_button_price()
         self.build_status()
+        self.build_dropdown_z()
         self.build_plot_zone()
         self.build_box()
 
         self.add_listeners()
 
-        self.show()
-
-        # self.li_op_label = [e[1] for e in li_output_data]
-        # self.dic_op_name_label = dict(li_output_data)
-        # self.dic_op_label_name = {v: k for k,
-        #                           v in self.dic_op_name_label.items()}
-
-        # self.dic_price = None
-        # self.df_data_2d = None
-        # self.df_data_3d = None
-        # self.axis_z = None
-
-        # self.start()
+    def _ipython_display_(self):
+        """
+        """
+        display(self.box)
+        return
 
     def build_sheet_in(self):
         """
@@ -145,7 +141,7 @@ class BlackScholesCalculator:
     def build_sheet_out(self):
         """
         """
-        sheet = ipysheet.sheet(rows=1+len(self.li_op_key),
+        sheet = ipysheet.sheet(rows=1 + len(self.li_op_key),
                                columns=2,
                                column_headers=False,
                                row_headers=False)
@@ -168,9 +164,9 @@ class BlackScholesCalculator:
         cells_out = {}
 
         for k, [key, name] in enumerate(self.li_output_data):
-            c = ipysheet.cell(1+k, 0, name, read_only=True)
+            c = ipysheet.cell(1 + k, 0, name, read_only=True)
             c.style = style_title_output
-            cells_out[key] = ipysheet.cell(1+k, 1, 0, type='numeric')
+            cells_out[key] = ipysheet.cell(1 + k, 1, 0, type='numeric')
 
         self.sheet_out = sheet
         self.cells_out = cells_out
@@ -188,47 +184,59 @@ class BlackScholesCalculator:
         """
 
         self.status = widgets.Text(value='No pricing available',
-                                   #    description='Last Price',
                                    disabled=False,
-                                   border='3px solid red',
                                    layout=widgets.Layout(width='180px'))
+
+    def build_dropdown_z(self):
+        """
+        """
+        dic_dd = {e[1]: e[0] for e in li_output_data}
+        self.dropdown_z = widgets.Dropdown(options=dic_dd,
+                                           value='price',
+                                           description='z :',
+                                           disabled=False,
+                                           )
 
     def build_plot_zone(self):
         """
         """
-        self.plot_zone = widgets.HTML(value='PlotZone',
-                                      width='500px',
-                                      height='500px',
-                                      border='3px solid red')
+        self.plot_zone = widgets.Output(value='PlotZone',
+                                        layout=widgets.Layout(width='800px',
+                                                              height='500px',
+                                                              border='1px solid gray'))
 
     def build_box(self):
         """
         """
-        b1 = widgets.VBox([self.sheet_in, self.button_price, self.status],
+        b1 = widgets.HBox([self.button_price,
+                           self.status],
+                          layout=widgets.Layout(display='flex',
+                                                flex_direction='row',
+                                                justify_content='center',
+                                                ))
+
+        b2 = widgets.VBox([self.sheet_in,
+                           b1,
+                           self.dropdown_z],
                           layout=widgets.Layout(display='flex',
                                                 flex_direction='column',
                                                 justify_content='space-around',
                                                 align_items='center',
                                                 height='320px'
                                                 ))
-        b2 = widgets.HBox([b1, self.sheet_out],
+        b3 = widgets.HBox([b2, self.sheet_out],
                           layout=widgets.Layout(display='flex',
                                                 flex_direction='row',
                                                 justify_content='space-around',
                                                 width='800px'
                                                 ))
-        b3 = widgets.VBox([b2, self.plot_zone],
+        b4 = widgets.VBox([b3, self.plot_zone],
                           layout=widgets.Layout(display='flex',
                                                 flex_direction='column',
                                                 justify_content='space-around',
                                                 # height='700px'
                                                 ))
-        self.box = b3
-
-    def show(self):
-        """
-        """
-        return self.box
+        self.box = b4
 
     def add_listeners(self):
         """
@@ -249,6 +257,7 @@ class BlackScholesCalculator:
             # print('option', 'changed from', change.old, 'to', change.new)
             cs = self.cells_in['option_state']
             cs.value = 'Call' if change.new in ['true', 1] else 'Put'
+            react_button(None)
 
         self.cells_in['option'].observe(react_option, 'value')
 
@@ -268,9 +277,17 @@ class BlackScholesCalculator:
             # print(df_res.shape)
             self.df_pricing_batch = df_res.copy()
 
-            # self.display_price_result_plot(df_res)
+            self.build_price_result_plot()
+            self.display_price_result_plot()
 
         self.button_price.on_click(react_button)
+
+        def react_z(change):
+            # print('z', 'changed from', change.old, 'to', change.new)
+            self.build_price_result_plot()
+            self.display_price_result_plot()
+
+        self.dropdown_z.observe(react_z, 'value')
 
     def build_price_input(self, batch=True):
         """
@@ -288,7 +305,7 @@ class BlackScholesCalculator:
             cell = cells[key]['value']
             value = [cell.value]
             if batch:
-                if (key == x) or (key == x and graph == '3D'):
+                if (key == x) or (key == y and graph == 'false'):
                     x_min = cells[key]['value_min'].value
                     x_max = cells[key]['value_max'].value
                     nb_step = int(cells['nb_step'].value)
@@ -341,3 +358,34 @@ class BlackScholesCalculator:
             if k in self.li_op_key:
                 c = self.cells_out[k]
                 c.value = v
+
+    def build_price_result_plot(self):
+        """
+        """
+        name_x = self.cells_in['x'].value
+        name_y = self.cells_in['y'].value
+        name_z = self.dropdown_z.value
+        graph = self.cells_in['graph'].value
+
+        df = self.df_pricing_batch
+
+        if graph == 'true':  # 2D
+            self.df_2d = df[[name_x, name_z]].set_index(name_x).sort_index()
+            self.df_3d = None
+        elif graph == 'false':  # 3D
+            self.df_2d = None
+            self.df_3d = df[[name_x, name_y, name_z]]
+
+    def display_price_result_plot(self):
+        """
+        """
+        if self.df_2d is not None:
+            html = get_html_plot_2d(self.df_2d)
+        elif self.df_3d is not None:
+            pass
+            html = get_html_plot_3d(self.df_3d)
+            # html = 'toto'
+
+        with self.plot_zone:
+            clear_output(wait=True)
+            display(HTML(html))
