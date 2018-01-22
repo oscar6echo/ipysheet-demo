@@ -129,7 +129,7 @@ class BlackScholesCalculator:
         cells['option_state'] = ipysheet.cell(
             9, 1, 'Call', style={'textAlign': 'center'})
         cells['nb_step'] = ipysheet.cell(8, 2, '10', type='dropdown', choice=[
-                                         '10', '50', '100', '200', '500'])
+                                         '5', '10', '20', '50', '75'])
         cells['x'] = ipysheet.cell(
             8, 3, 'spot', type='dropdown', choice=self.li_ip_key)
         cells['y'] = ipysheet.cell(
@@ -248,6 +248,7 @@ class BlackScholesCalculator:
             # print('graph', 'changed from', change.old, 'to', change.new)
             cs = self.cells_in['graph_state']
             cs.value = '2D' if change.new in ['true', 1] else '3D'
+            react_button(None)
 
         self.cells_in['graph'].observe(react_graph, 'value')
 
@@ -260,6 +261,9 @@ class BlackScholesCalculator:
             react_button(None)
 
         self.cells_in['option'].observe(react_option, 'value')
+
+
+        # price button
 
         def react_button(b):
             # print('button pressed')
@@ -289,6 +293,13 @@ class BlackScholesCalculator:
 
         self.dropdown_z.observe(react_z, 'value')
 
+        self.cells_in['x'].observe(react_button, 'value')
+        self.cells_in['y'].observe(react_button, 'value')
+        self.cells_in['nb_step'].observe(react_button, 'value')
+
+        # init
+        react_button(None)
+
     def build_price_input(self, batch=True):
         """
         """
@@ -305,7 +316,7 @@ class BlackScholesCalculator:
             cell = cells[key]['value']
             value = [cell.value]
             if batch:
-                if (key == x) or (key == y and graph == 'false'):
+                if (key == x) or (key == y and graph in [0, 'false']):
                     x_min = cells[key]['value_min'].value
                     x_max = cells[key]['value_max'].value
                     nb_step = int(cells['nb_step'].value)
@@ -369,10 +380,10 @@ class BlackScholesCalculator:
 
         df = self.df_pricing_batch
 
-        if graph == 'true':  # 2D
+        if graph in [1, 'true']:  # 2D
             self.df_2d = df[[name_x, name_z]].set_index(name_x).sort_index()
             self.df_3d = None
-        elif graph == 'false':  # 3D
+        elif graph in [0, 'false']:  # 3D
             self.df_2d = None
             self.df_3d = df[[name_x, name_y, name_z]]
 
