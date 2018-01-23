@@ -70,12 +70,13 @@ class BlackScholesCalculator:
         self.build_plot_zone()
         self.build_box()
 
+        display(self.box)
         self.add_listeners()
 
     def _ipython_display_(self):
         """
         """
-        display(self.box)
+        # display(self.box)
         return
 
     def build_sheet_in(self):
@@ -121,15 +122,15 @@ class BlackScholesCalculator:
             c.style = style_header_2
 
         cells['graph'] = ipysheet.cell(
-            8, 0, 'true', type='checkbox', style={'textAlign': 'center'})
+            8, 0, True, type='checkbox', style={'textAlign': 'center'})
         cells['graph_state'] = ipysheet.cell(
             9, 0, '2D', style={'textAlign': 'center'})
         cells['option'] = ipysheet.cell(
-            8, 1, 'true', type='checkbox', style={'textAlign': 'center'})
+            8, 1, True, type='checkbox', style={'textAlign': 'center'})
         cells['option_state'] = ipysheet.cell(
             9, 1, 'Call', style={'textAlign': 'center'})
         cells['nb_step'] = ipysheet.cell(8, 2, '10', type='dropdown', choice=[
-                                         '5', '10', '20', '50', '75'])
+                                         '5', '10', '20', '30', '50'])
         cells['x'] = ipysheet.cell(
             8, 3, 'spot', type='dropdown', choice=self.li_ip_key)
         cells['y'] = ipysheet.cell(
@@ -247,7 +248,7 @@ class BlackScholesCalculator:
         def react_graph(change):
             # print('graph', 'changed from', change.old, 'to', change.new)
             cs = self.cells_in['graph_state']
-            cs.value = '2D' if change.new in ['true', 1] else '3D'
+            cs.value = '2D' if change.new == True else '3D'
             react_button(None)
 
         self.cells_in['graph'].observe(react_graph, 'value')
@@ -257,11 +258,10 @@ class BlackScholesCalculator:
         def react_option(change):
             # print('option', 'changed from', change.old, 'to', change.new)
             cs = self.cells_in['option_state']
-            cs.value = 'Call' if change.new in ['true', 1] else 'Put'
+            cs.value = 'Call' if change.new == True else 'Put'
             react_button(None)
 
         self.cells_in['option'].observe(react_option, 'value')
-
 
         # price button
 
@@ -380,10 +380,11 @@ class BlackScholesCalculator:
 
         df = self.df_pricing_batch
 
-        if graph in [1, 'true']:  # 2D
+        if graph == True:  # 2D
+            print(graph)
             self.df_2d = df[[name_x, name_z]].set_index(name_x).sort_index()
             self.df_3d = None
-        elif graph in [0, 'false']:  # 3D
+        elif graph == False:  # 3D
             self.df_2d = None
             self.df_3d = df[[name_x, name_y, name_z]]
 
