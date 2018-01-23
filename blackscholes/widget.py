@@ -381,7 +381,6 @@ class BlackScholesCalculator:
         df = self.df_pricing_batch
 
         if graph == True:  # 2D
-            print(graph)
             self.df_2d = df[[name_x, name_z]].set_index(name_x).sort_index()
             self.df_3d = None
         elif graph == False:  # 3D
