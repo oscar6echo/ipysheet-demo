@@ -6,7 +6,6 @@ import ezhc as hc
 import ezvis3d as v3d
 
 
-
 def get_html_plot_2d(df_2d):
     """
     """
@@ -85,6 +84,14 @@ def get_html_plot_3d(df_3d):
     g.cameraPosition = {'horizontal': 0.9,
                         'vertical': 0.5,
                         'distance': 1.8}
+
+    str_func = """function (point) {
+            let x = parseFloat(point.x.toFixed(2));
+            let y = parseFloat(point.y.toFixed(2));
+            let z = parseFloat(point.z.toFixed(3));
+            return '(' + x + ', ' + y + '): ' + '<b> ' + z + '</b > ';
+        }"""
+    g.tooltip = str_func
 
     html = g.html(df,
                   center=True,
