@@ -13,8 +13,8 @@ def get_html_plot_2d(df_2d):
     label_x = df_2d.index.name
 
     g = hc.Highcharts()
-    g.chart.width = 790
-    g.chart.height = 490
+    g.chart.width = 490
+    g.chart.height = 290
     g.chart.marginLeft = 80
     g.chart.marginTop = 10
     g.chart.marginBottom = 50
@@ -70,8 +70,8 @@ def get_html_plot_3d(df_3d):
     df.columns = ['x', 'y', 'z']
 
     g = v3d.Vis3d()
-    g.width = '790px'
-    g.height = '490px'
+    g.width = '490px'
+    g.height = '290px'
     g.style = 'surface'
     g.showPerspective = True
     g.showGrid = True

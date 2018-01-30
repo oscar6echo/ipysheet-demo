@@ -202,8 +202,8 @@ class BlackScholesCalculator:
         """
         """
         self.plot_zone = widgets.Output(value='PlotZone',
-                                        layout=widgets.Layout(width='800px',
-                                                              height='500px',
+                                        layout=widgets.Layout(width='500px',
+                                                              height='300px',
                                                               border='1px solid gray'))
 
     def build_box(self):
@@ -218,12 +218,13 @@ class BlackScholesCalculator:
 
         b2 = widgets.VBox([self.sheet_in,
                            b1,
-                           self.dropdown_z],
+                           self.dropdown_z,
+                           self.plot_zone],
                           layout=widgets.Layout(display='flex',
                                                 flex_direction='column',
                                                 justify_content='space-around',
                                                 align_items='center',
-                                                height='320px'
+                                                # height='320px'
                                                 ))
         b3 = widgets.HBox([b2, self.sheet_out],
                           layout=widgets.Layout(display='flex',
@@ -231,13 +232,13 @@ class BlackScholesCalculator:
                                                 justify_content='space-around',
                                                 width='800px'
                                                 ))
-        b4 = widgets.VBox([b3, self.plot_zone],
-                          layout=widgets.Layout(display='flex',
-                                                flex_direction='column',
-                                                justify_content='space-around',
-                                                # height='700px'
-                                                ))
-        self.box = b4
+        # b4 = widgets.VBox([b3, self.plot_zone],
+        #                   layout=widgets.Layout(display='flex',
+        #                                         flex_direction='column',
+        #                                         justify_content='space-around',
+        #                                         # height='700px'
+        #                                         ))
+        self.box = b3
 
     def add_listeners(self):
         """
